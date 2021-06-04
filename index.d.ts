@@ -1,4 +1,4 @@
-import {EventEmitter} from 'events';
+import { EventEmitter } from "events";
 
 /**
  *  Require options for a VM
@@ -12,13 +12,16 @@ export interface VMRequire {
    */
   context?: "host" | "sandbox";
   /** `true`, an array of allowed external modules or an object with external options (default: `false`) */
-  external?: boolean | string[] | { modules: string[], transitive: boolean };
+  external?: boolean | string[] | { modules: string[]; transitive: boolean };
   /** Array of modules to be loaded into NodeVM on start. */
   import?: string[];
   /** Restricted path(s) where local modules can be required (default: every path). */
   root?: string | string[];
   /** Collection of mock modules (both external or builtin). */
   mock?: any;
+
+  /** Collection of unsafe modules (both external or builtin). */
+  unsafe?: any;
   /* An additional lookup function in case a module wasn't found in one of the traditional node lookup paths. */
   resolve?: (moduleName: string, parentDirname: string) => string;
 }
@@ -74,14 +77,14 @@ export interface NodeVMOptions extends VMOptions {
   wrapper?: "commonjs" | "none";
   /** File extensions that the internal module resolver should accept. */
   sourceExtensions?: string[];
-  /** 
-   * Array of arguments passed to `process.argv`. 
-	 * This object will not be copied and the script can change this object. 
+  /**
+   * Array of arguments passed to `process.argv`.
+   * This object will not be copied and the script can change this object.
    */
   argv?: string[];
-  /** 
-   * Environment map passed to `process.env`. 
-	 * This object will not be copied and the script can change this object.
+  /**
+   * Environment map passed to `process.env`.
+   * This object will not be copied and the script can change this object.
    */
   env?: any;
 }
@@ -124,7 +127,7 @@ export class NodeVM extends EventEmitter implements VM {
   /** Require a module in VM and return it's exports. */
   require(module: string): any;
 
-   /**
+  /**
    * Create NodeVM and run code inside it.
    *
    * @param {string} script Javascript code.
@@ -141,7 +144,7 @@ export class NodeVM extends EventEmitter implements VM {
    */
   static file(filename: string, options?: NodeVMOptions): any;
 
-   /** Direct access to the global sandbox object */
+  /** Direct access to the global sandbox object */
   readonly sandbox: any;
   /** Only here because of implements VM. Does nothing. */
   timeout?: number;
@@ -169,24 +172,31 @@ export class NodeVM extends EventEmitter implements VM {
  * to any VM (context); rather, it is bound before each run, just for that run.
  */
 export class VMScript {
-  constructor(code: string, path: string, options?: {
-    lineOffset?: number;
-    columnOffset?: number;
-    compiler?: "javascript" | "coffeescript" | CompilerFunction;
-  });
-  constructor(code: string, options?: {
-    filename?: string,
-    lineOffset?: number;
-    columnOffset?: number;
-    compiler?: "javascript" | "coffeescript" | CompilerFunction;
-  });
+  constructor(
+    code: string,
+    path: string,
+    options?: {
+      lineOffset?: number;
+      columnOffset?: number;
+      compiler?: "javascript" | "coffeescript" | CompilerFunction;
+    }
+  );
+  constructor(
+    code: string,
+    options?: {
+      filename?: string;
+      lineOffset?: number;
+      columnOffset?: number;
+      compiler?: "javascript" | "coffeescript" | CompilerFunction;
+    }
+  );
   readonly code: string;
   readonly filename: string;
   readonly lineOffset: number;
   readonly columnOffset: number;
   readonly compiler: "javascript" | "coffeescript" | CompilerFunction;
-  /** 
-   * Wraps the code 
+  /**
+   * Wraps the code
    * @deprecated
    */
   wrap(prefix: string, postfix: string): this;
